@@ -77,7 +77,7 @@ export default function App() {
 			const res = await fetch(`${API_BASE}/send-email`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ from, to, subject, html: body }),
+				body: JSON.stringify({ from_email: from, to, subject, text: body, html: body }),
 			})
 			const text = await res.text()
 			let data = null
