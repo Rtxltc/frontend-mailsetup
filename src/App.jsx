@@ -1,5 +1,14 @@
 import { useState, useEffect } from 'react'
+import './App.css'
+import {
 
+motion,
+
+AnimatePresence
+
+} from "framer-motion";
+import Login from "./components/Login";
+import Dashboard from "./components/Dashboard";
 const SENDER_OPTIONS = [
 	'founder@soulmatrix.in',
 	'hello@soulmatrix.in',
@@ -19,6 +28,7 @@ function deviceId() {
 export default function App() {
 	const [user, setUser] = useState('')
 	const [password, setPassword] = useState('')
+	const [guestMode, setGuestMode] = useState(false)
 	const [loggedIn, setLoggedIn] = useState(false)
 	const [newDevice, setNewDevice] = useState(false)
 	const [deviceName, setDeviceName] = useState('')
@@ -30,9 +40,13 @@ export default function App() {
 
 	const API_BASE = import.meta.env.VITE_API_BASE || 'https://admin-mail.soulmatrix.in'
 
-	// simple demo credentials
-	const DEMO_USER = 'admin'
-	const DEMO_PASS = 'password123'
+	// preset users and their passwords (set real values in .env as VITE_PW_VICKY etc)
+	const PRESET_USERS = ['vicky lode', 'manmat gand mare', 'yash daddy', 'guest']
+	const PASSWORDS = {
+		'vicky lode': import.meta.env.VITE_PW_VICKY, 
+		'manmat gand mare': import.meta.env.VITE_PW_MANMAT,
+		'yash daddy': import.meta.env.VITE_PW_YASH 
+	}
 
 	useEffect(() => {
 		const id = deviceId()
@@ -44,7 +58,21 @@ export default function App() {
 
 	const handleLogin = (e) => {
 		e.preventDefault()
-		if (user === DEMO_USER && password === DEMO_PASS) {
+		if (user === 'guest') {
+			setGuestMode(true)
+			const id = deviceId()
+			const devices = JSON.parse(localStorage.getItem('devices') || '[]')
+			if (!devices.includes(id)) {
+				setNewDevice(true)
+			} else {
+				setLoggedIn(true)
+			}
+			return
+		}
+
+		// validate against env passwords
+		const expected = PASSWORDS[user]
+		if (expected && password === expected) {
 			const id = deviceId()
 			const devices = JSON.parse(localStorage.getItem('devices') || '[]')
 			if (!devices.includes(id)) {
@@ -53,7 +81,7 @@ export default function App() {
 				setLoggedIn(true)
 			}
 		} else {
-			alert('invalid credentials — demo: admin / password123')
+			alert('invalid credentials — check password for selected user')
 		}
 	}
 
@@ -71,9 +99,25 @@ export default function App() {
 		setDeviceName('')
 	}
 
+	const guestAllowed = () => {
+		try {
+			const last = parseInt(localStorage.getItem('guest-last-sent') || '0', 10)
+			const now = Date.now()
+			// 24 hours
+			return now - last >= 24 * 60 * 60 * 1000
+		} catch (e) {
+			return true
+		}
+	}
+
 	const sendEmail = async () => {
 		setStatus('sending')
 		try {
+			if (guestMode && !guestAllowed()) {
+				alert('Guest mode allows 1 send per day per browser. Try again later.')
+				setStatus('idle')
+				return
+			}
 			const res = await fetch(`${API_BASE}/send-email`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -87,6 +131,8 @@ export default function App() {
 				data = text
 			}
 			if (!res.ok) throw new Error(JSON.stringify(data) || res.statusText)
+			// mark guest send time
+			if (guestMode) localStorage.setItem('guest-last-sent', String(Date.now()))
 			setStatus('sent')
 		} catch (err) {
 			console.error(err)
@@ -96,70 +142,197 @@ export default function App() {
 
 	if (!loggedIn) {
 		return (
-			<div style={{ fontFamily: 'system-ui, sans-serif', padding: 24 }}>
-				<h2>Mail App — Demo UI</h2>
-				<form onSubmit={handleLogin} style={{ maxWidth: 420 }}>
-					<div style={{ marginBottom: 8 }}>
-						<label>Username</label>
-						<input value={user} onChange={(e) => setUser(e.target.value)} style={{ width: '100%' }} />
-					</div>
-					<div style={{ marginBottom: 8 }}>
-						<label>Password</label>
-						<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={{ width: '100%' }} />
-					</div>
-					<button type="submit">Sign in</button>
-				</form>
-
-				{newDevice && (
-					<div style={{ marginTop: 16, border: '1px solid #ddd', padding: 12, maxWidth: 420 }}>
-						<h4>New device detected</h4>
-						<p>Please give your device a name to register it for future access.</p>
-						<input value={deviceName} onChange={(e) => setDeviceName(e.target.value)} placeholder="My laptop" style={{ width: '100%', marginBottom: 8 }} />
-						<div style={{ display: 'flex', gap: 8 }}>
-							<button onClick={registerDevice}>Register device</button>
+			<div className="app">
+				<div className="bg" />
+				<div className="login-panel">
+					<h2>Mail App — Demo UI</h2>
+					<form onSubmit={handleLogin} className="login-form">
+						<div>
+							<label>Choose user</label>
+							<select value={user} onChange={(e) => setUser(e.target.value)}>
+								<option value="">-- select --</option>
+								{PRESET_USERS.map((u) => (
+									<option key={u} value={u}>{u}</option>
+								))}
+							</select>
 						</div>
-					</div>
-				)}
+						{user && user !== 'guest' && (
+							<div>
+								<label>Password</label>
+								<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+							</div>
+						)}
+						<div style={{ marginTop: 12 }}>
+							<button type="submit">Sign in</button>
+						</div>
+					</form>
+
+					{newDevice && (
+						<div className="device-panel">
+							<h4>New device detected</h4>
+							<p>Please give your device a name to register it for future access.</p>
+							<input value={deviceName} onChange={(e) => setDeviceName(e.target.value)} placeholder="My laptop" />
+							<div style={{ display: 'flex', gap: 8 }}>
+								<button onClick={registerDevice}>Register device</button>
+							</div>
+						</div>
+					)}
+				</div>
 			</div>
 		)
 	}
 
 	return (
-		<div style={{ fontFamily: 'system-ui, sans-serif', padding: 24 }}>
-			<header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-				<h2>Inbox — Demo</h2>
-				<div>
-					<strong>{user}</strong>
-				</div>
-			</header>
+  <div className="app">
+    <div className="bg" />
 
-			<section style={{ marginTop: 20, maxWidth: 780 }}>
-				<h3>Compose</h3>
-				<div style={{ marginBottom: 8 }}>
-					<label>From</label>
-					<select value={from} onChange={(e) => setFrom(e.target.value)} style={{ width: '100%' }}>
-						{SENDER_OPTIONS.map((s) => (
-							<option key={s} value={s}>{s}</option>
-						))}
-					</select>
-				</div>
-				<div style={{ marginBottom: 8 }}>
-					<label>To</label>
-					<input value={to} onChange={(e) => setTo(e.target.value)} style={{ width: '100%' }} />
-				</div>
-				<div style={{ marginBottom: 8 }}>
-					<label>Subject</label>
-					<input value={subject} onChange={(e) => setSubject(e.target.value)} style={{ width: '100%' }} />
-				</div>
-				<div style={{ marginBottom: 8 }}>
-					<label>Body (HTML allowed)</label>
-					<textarea value={body} onChange={(e) => setBody(e.target.value)} style={{ width: '100%', height: 140 }} />
-				</div>
-				<div style={{ display: 'flex', gap: 8 }}>
-					<button onClick={sendEmail}>Send</button>
-					<div style={{ alignSelf: 'center' }}>{status}</div>
-				</div>
-			</section>
-		</div>
-	)
+    <Dashboard
+    user={user}
+    onLogout={() => {
+        setLoggedIn(false);
+        setPassword("");
+        setStatus("");
+    }}
+>
+      <section className="compose-area">
+        <div className="compose-layout">
+
+  <div className="editor">
+
+    <div className="compose-header">
+      <div>
+        <h2>Compose Email</h2>
+        <p>Create and preview your email before sending.</p>
+      </div>
+
+      <div className="editor-tools">
+        <button className="tool-btn">📎</button>
+        <button className="tool-btn">😊</button>
+      </div>
+    </div>
+
+    <div className="field">
+      <label>From</label>
+
+      <select
+        value={from}
+        onChange={(e) => setFrom(e.target.value)}
+      >
+        {SENDER_OPTIONS.map((s) => (
+          <option
+            key={s}
+            value={s}
+          >
+            {s}
+          </option>
+        ))}
+      </select>
+    </div>
+
+    <div className="field">
+      <label>To</label>
+
+      <input
+        placeholder="john@example.com"
+        value={to}
+        onChange={(e) => setTo(e.target.value)}
+      />
+    </div>
+
+    <div className="field">
+      <label>Subject</label>
+
+      <input
+        placeholder="Email subject..."
+        value={subject}
+        onChange={(e) => setSubject(e.target.value)}
+      />
+    </div>
+
+    <div className="field">
+      <label>Body (HTML Supported)</label>
+
+      <textarea
+        className="editor-textarea"
+        placeholder="<h1>Hello!</h1>"
+        value={body}
+        onChange={(e) => setBody(e.target.value)}
+      />
+    </div>
+
+    <div className="bottom-bar">
+
+      <span>
+        {body.length} Characters
+      </span>
+
+      <button
+        className="send"
+        onClick={sendEmail}
+      >
+        📤 Send Email
+      </button>
+
+    </div>
+		<AnimatePresence>
+			{status && (
+			<motion.div
+
+				initial={{
+				opacity:0,
+				scale:.8
+				}}
+
+				animate={{
+				opacity:1,
+				scale:1
+				}}
+
+				exit={{
+				opacity:0,
+				scale:.8
+				}}
+
+className={`status-badge ${status}`}
+>
+				{status}
+			</motion.div>
+			)}
+		</AnimatePresence>
+
+  </div>
+
+  <div className="preview">
+
+    <div className="preview-header">
+
+      Live Preview
+
+    </div>
+
+    <div className="preview-body">
+
+      {body ? (
+        <div
+          dangerouslySetInnerHTML={{
+            __html: body
+          }}
+        />
+      ) : (
+        <div className="empty-preview">
+
+          Your HTML preview will appear here.
+
+        </div>
+      )}
+
+    </div>
+
+  </div>
+
+</div>
+      </section>
+    </Dashboard>
+  </div>
+)
 }

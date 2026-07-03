@@ -1,0 +1,73 @@
+@keyframes fadeUp{
+
+from{
+
+opacity:0;
+transform:translateY(20px);
+
+}
+
+to{
+
+opacity:1;
+transform:translateY(0);
+
+}
+
+}
+
+.fade-up{
+
+animation:fadeUp .6s ease;
+
+}
+
+@keyframes float{
+
+0%,100%{
+
+transform:translateY(0px);
+
+}
+
+50%{
+
+transform:translateY(-12px);
+
+}
+
+}
+
+.float{
+
+animation:float 6s ease-in-out infinite;
+
+}
+
+@keyframes pulseGlow{
+
+0%{
+
+box-shadow:0 0 0 transparent;
+
+}
+
+50%{
+
+box-shadow:0 0 35px rgba(124,58,237,.35);
+
+}
+
+100%{
+
+box-shadow:0 0 0 transparent;
+
+}
+
+}
+
+.glow{
+
+animation:pulseGlow 3s infinite;
+
+}
