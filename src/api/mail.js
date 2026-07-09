@@ -7,7 +7,7 @@ const normalizeApiBase = (value = '') => {
   return `https://${base.replace(/\/+$/, '')}`;
 };
 
-const API_BASE = normalizeApiBase(import.meta.env.VITE_API_BASE);
+const API_BASE = normalizeApiBase(import.meta.env.VITE_API_BASE || 'admin-mail.soulmatrix.in');
 
 const buildUrl = (path) => `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`;
 

@@ -62,7 +62,7 @@ export default function App() {
 		return `https://${base.replace(/\/+$/, '')}`
 	}
 
-	const API_BASE = normalizeApiBase(import.meta.env.VITE_API_BASE)
+	const API_BASE = normalizeApiBase(import.meta.env.VITE_API_BASE || 'admin-mail.soulmatrix.in')
 
 	// preset users and their passwords (set real values in .env as VITE_PW_VICKY etc)
 	const PRESET_USERS = ['vicky', 'manmat', 'yash']
