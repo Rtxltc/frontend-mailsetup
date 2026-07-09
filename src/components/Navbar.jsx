@@ -9,7 +9,8 @@ import {
 
 export default function Navbar({
     user,
-    onLogout
+    onLogout,
+    onOpenInbox
 })  {
     return (
         <motion.header
@@ -42,7 +43,7 @@ export default function Navbar({
 
             <div className="nav-right">
 
-                <button className="icon-btn">
+                <button className="icon-btn" onClick={onOpenInbox} aria-label="Open inbox">
 
                     <Bell size={20} />
 

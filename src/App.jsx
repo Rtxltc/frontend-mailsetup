@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import './App.css'
+import Inbox from "./components/Inbox";
 import {
 
 motion,
@@ -7,7 +8,6 @@ motion,
 AnimatePresence
 
 } from "framer-motion";
-import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 const SENDER_OPTIONS = [
 	'founder@soulmatrix.in',
@@ -25,11 +25,28 @@ function deviceId() {
 	}
 }
 
+const getInitialView = () => {
+	if (typeof window === 'undefined') return 'compose'
+	return window.location.pathname === '/inbox' ? 'inbox' : 'compose'
+}
+
+const getInitialInboxVariant = () => {
+	if (typeof window === 'undefined') return 'default'
+	return window.location.pathname === '/inbox' ? 'bell' : 'default'
+}
+
 export default function App() {
-	const [user, setUser] = useState('')
+	const [activeTab, setActiveTab] = useState(getInitialView);
+	const [inboxView, setInboxView] = useState(getInitialInboxVariant);
+	const [user, setUser] = useState(() => {
+		if (typeof window === 'undefined') return ''
+		return window.localStorage.getItem('mailapp-user') || ''
+	})
 	const [password, setPassword] = useState('')
-	const [guestMode, setGuestMode] = useState(false)
-	const [loggedIn, setLoggedIn] = useState(false)
+	const [loggedIn, setLoggedIn] = useState(() => {
+		if (typeof window === 'undefined') return false
+		return window.localStorage.getItem('mailapp-auth') === 'true'
+	})
 	const [newDevice, setNewDevice] = useState(false)
 	const [deviceName, setDeviceName] = useState('')
 	const [to, setTo] = useState('')
@@ -38,14 +55,14 @@ export default function App() {
 	const [from, setFrom] = useState(SENDER_OPTIONS[0])
 	const [status, setStatus] = useState('')
 
-	const API_BASE = import.meta.env.VITE_API_BASE || 'https://admin-mail.soulmatrix.in'
+	const API_BASE = import.meta.env.VITE_API_BASE ?? ''
 
 	// preset users and their passwords (set real values in .env as VITE_PW_VICKY etc)
-	const PRESET_USERS = ['vicky lode', 'manmat gand mare', 'yash daddy', 'guest']
+	const PRESET_USERS = ['vicky', 'manmat', 'yash']
 	const PASSWORDS = {
-		'vicky lode': import.meta.env.VITE_PW_VICKY, 
-		'manmat gand mare': import.meta.env.VITE_PW_MANMAT,
-		'yash daddy': import.meta.env.VITE_PW_YASH 
+		'vicky': import.meta.env.VITE_PW_VICKY,
+		'manmat': import.meta.env.VITE_PW_MANMAT,
+		'yash': import.meta.env.VITE_PW_YASH
 	}
 
 	useEffect(() => {
@@ -56,29 +73,72 @@ export default function App() {
 		}
 	}, [])
 
+	useEffect(() => {
+		if (typeof window === 'undefined') return
+		window.localStorage.setItem('mailapp-auth', String(loggedIn))
+		if (loggedIn && user) {
+			window.localStorage.setItem('mailapp-user', user)
+		} else {
+			window.localStorage.removeItem('mailapp-user')
+		}
+	}, [loggedIn, user])
+
+	useEffect(() => {
+		if (typeof window === 'undefined') return
+		const storedAuth = window.localStorage.getItem('mailapp-auth') === 'true'
+		if (storedAuth) {
+			setLoggedIn(true)
+			const storedUser = window.localStorage.getItem('mailapp-user') || ''
+			if (storedUser) setUser(storedUser)
+		}
+		const nextTab = window.location.pathname === '/inbox' ? 'inbox' : 'compose'
+		setActiveTab(nextTab)
+		setInboxView(nextTab === 'inbox' ? 'bell' : 'default')
+	}, [])
+
+	useEffect(() => {
+		const onPopState = () => {
+			const nextTab = window.location.pathname === '/inbox' ? 'inbox' : 'compose'
+			setActiveTab(nextTab)
+			setInboxView(nextTab === 'inbox' ? 'bell' : 'default')
+		}
+
+		window.addEventListener('popstate', onPopState)
+		return () => window.removeEventListener('popstate', onPopState)
+	}, [])
+
+	const navigateToView = (nextTab, nextPath) => {
+		const resolvedTab = nextTab === 'inbox' ? 'inbox' : 'compose'
+		const resolvedPath = nextPath || (resolvedTab === 'inbox' ? '/inbox' : '/')
+		setActiveTab(resolvedTab)
+		setInboxView(resolvedTab === 'inbox' ? 'bell' : 'default')
+		if (typeof window !== 'undefined') {
+			window.history.pushState({}, '', resolvedPath)
+		}
+	}
+
+	const handleBellOpenInbox = () => {
+		navigateToView('inbox', '/inbox')
+	}
+
 	const handleLogin = (e) => {
 		e.preventDefault()
-		if (user === 'guest') {
-			setGuestMode(true)
-			const id = deviceId()
-			const devices = JSON.parse(localStorage.getItem('devices') || '[]')
-			if (!devices.includes(id)) {
-				setNewDevice(true)
-			} else {
-				setLoggedIn(true)
-			}
-			return
-		}
 
 		// validate against env passwords
 		const expected = PASSWORDS[user]
 		if (expected && password === expected) {
+			setUser(user)
 			const id = deviceId()
 			const devices = JSON.parse(localStorage.getItem('devices') || '[]')
 			if (!devices.includes(id)) {
 				setNewDevice(true)
 			} else {
 				setLoggedIn(true)
+				if (window.location.pathname === '/inbox') {
+					navigateToView('inbox', '/inbox')
+				} else {
+					navigateToView('compose', '/')
+				}
 			}
 		} else {
 			alert('invalid credentials — check password for selected user')
@@ -97,27 +157,16 @@ export default function App() {
 		setNewDevice(false)
 		setLoggedIn(true)
 		setDeviceName('')
-	}
-
-	const guestAllowed = () => {
-		try {
-			const last = parseInt(localStorage.getItem('guest-last-sent') || '0', 10)
-			const now = Date.now()
-			// 24 hours
-			return now - last >= 24 * 60 * 60 * 1000
-		} catch (e) {
-			return true
+		if (window.location.pathname === '/inbox') {
+			navigateToView('inbox', '/inbox')
+		} else {
+			navigateToView('compose', '/')
 		}
 	}
 
 	const sendEmail = async () => {
 		setStatus('sending')
 		try {
-			if (guestMode && !guestAllowed()) {
-				alert('Guest mode allows 1 send per day per browser. Try again later.')
-				setStatus('idle')
-				return
-			}
 			const res = await fetch(`${API_BASE}/send-email`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -131,8 +180,6 @@ export default function App() {
 				data = text
 			}
 			if (!res.ok) throw new Error(JSON.stringify(data) || res.statusText)
-			// mark guest send time
-			if (guestMode) localStorage.setItem('guest-last-sent', String(Date.now()))
 			setStatus('sent')
 		} catch (err) {
 			console.error(err)
@@ -144,39 +191,48 @@ export default function App() {
 		return (
 			<div className="app">
 				<div className="bg" />
-				<div className="login-panel">
-					<h2>Mail App — Demo UI</h2>
-					<form onSubmit={handleLogin} className="login-form">
-						<div>
-							<label>Choose user</label>
-							<select value={user} onChange={(e) => setUser(e.target.value)}>
-								<option value="">-- select --</option>
-								{PRESET_USERS.map((u) => (
-									<option key={u} value={u}>{u}</option>
-								))}
-							</select>
-						</div>
-						{user && user !== 'guest' && (
-							<div>
-								<label>Password</label>
-								<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+				<div className="login-wrapper">
+					<div className="login-card">
+						<div className="logo-circle">✉</div>
+						<h1>SoulMatrix Mail</h1>
+						<p>Secure, polished messaging for everyday work and collaboration.</p>
+
+						<form onSubmit={handleLogin} className="login-form">
+							<div className="input-group">
+								<label>Choose account</label>
+								<select value={user} onChange={(e) => { setUser(e.target.value); setPassword('') }}>
+									<option value="">-- select account --</option>
+									{PRESET_USERS.map((u) => (
+										<option key={u} value={u}>{u}</option>
+									))}
+								</select>
+							</div>
+
+							{user && (
+								<div className="input-group">
+									<label>Password</label>
+									<div className="password-box">
+										<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" />
+									</div>
+								</div>
+							)}
+
+							<button type="submit" className="login-submit">Sign in</button>
+						</form>
+
+						{newDevice && (
+							<div className="device-panel">
+								<h4>New device detected</h4>
+								<p>Please give your device a name to register it for future access.</p>
+								<input value={deviceName} onChange={(e) => setDeviceName(e.target.value)} placeholder="My laptop" />
+								<div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+									<button className="login-submit secondary" onClick={registerDevice}>Register device</button>
+								</div>
 							</div>
 						)}
-						<div style={{ marginTop: 12 }}>
-							<button type="submit">Sign in</button>
-						</div>
-					</form>
 
-					{newDevice && (
-						<div className="device-panel">
-							<h4>New device detected</h4>
-							<p>Please give your device a name to register it for future access.</p>
-							<input value={deviceName} onChange={(e) => setDeviceName(e.target.value)} placeholder="My laptop" />
-							<div style={{ display: 'flex', gap: 8 }}>
-								<button onClick={registerDevice}>Register device</button>
-							</div>
-						</div>
-					)}
+						<div className="login-footer">No guest access • Use your personal account</div>
+					</div>
 				</div>
 			</div>
 		)
@@ -187,152 +243,174 @@ export default function App() {
     <div className="bg" />
 
     <Dashboard
-    user={user}
-    onLogout={() => {
-        setLoggedIn(false);
-        setPassword("");
-        setStatus("");
-    }}
+  user={user}
+  onLogout={() => {
+    setLoggedIn(false);
+    setPassword("");
+    setStatus("");
+    setActiveTab("compose");
+    setInboxView("default");
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('mailapp-auth');
+      window.localStorage.removeItem('mailapp-user');
+      window.history.pushState({}, '', '/');
+    }
+  }}
+  onOpenInbox={handleBellOpenInbox}
 >
-      <section className="compose-area">
-        <div className="compose-layout">
+  <div className="dashboard-tabs">
+    <button
+      className={activeTab === "compose" ? "active" : ""}
+      onClick={() => navigateToView("compose", "/")}
+    >
+      ✍️ Compose
+    </button>
 
-  <div className="editor">
-
-    <div className="compose-header">
-      <div>
-        <h2>Compose Email</h2>
-        <p>Create and preview your email before sending.</p>
-      </div>
-
-      <div className="editor-tools">
-        <button className="tool-btn">📎</button>
-        <button className="tool-btn">😊</button>
-      </div>
-    </div>
-
-    <div className="field">
-      <label>From</label>
-
-      <select
-        value={from}
-        onChange={(e) => setFrom(e.target.value)}
-      >
-        {SENDER_OPTIONS.map((s) => (
-          <option
-            key={s}
-            value={s}
-          >
-            {s}
-          </option>
-        ))}
-      </select>
-    </div>
-
-    <div className="field">
-      <label>To</label>
-
-      <input
-        placeholder="john@example.com"
-        value={to}
-        onChange={(e) => setTo(e.target.value)}
-      />
-    </div>
-
-    <div className="field">
-      <label>Subject</label>
-
-      <input
-        placeholder="Email subject..."
-        value={subject}
-        onChange={(e) => setSubject(e.target.value)}
-      />
-    </div>
-
-    <div className="field">
-      <label>Body (HTML Supported)</label>
-
-      <textarea
-        className="editor-textarea"
-        placeholder="<h1>Hello!</h1>"
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
-      />
-    </div>
-
-    <div className="bottom-bar">
-
-      <span>
-        {body.length} Characters
-      </span>
-
-      <button
-        className="send"
-        onClick={sendEmail}
-      >
-        📤 Send Email
-      </button>
-
-    </div>
-		<AnimatePresence>
-			{status && (
-			<motion.div
-
-				initial={{
-				opacity:0,
-				scale:.8
-				}}
-
-				animate={{
-				opacity:1,
-				scale:1
-				}}
-
-				exit={{
-				opacity:0,
-				scale:.8
-				}}
-
-className={`status-badge ${status}`}
->
-				{status}
-			</motion.div>
-			)}
-		</AnimatePresence>
-
+    <button
+      className={activeTab === "inbox" ? "active" : ""}
+      onClick={() => navigateToView("inbox", "/inbox")}
+    >
+      📥 Inbox
+    </button>
   </div>
 
-  <div className="preview">
+  {activeTab === "compose" && (
+    <section className="compose-area">
+      <div className="compose-layout">
+        {/* ================= LEFT SIDE ================= */}
 
-    <div className="preview-header">
+        <div className="editor">
+          <div className="compose-header">
+            <div>
+              <h2>Compose Email</h2>
+              <p>Create and preview your email before sending.</p>
+            </div>
 
-      Live Preview
+            <div className="editor-tools">
+              <button className="tool-btn">📎</button>
+              <button className="tool-btn">😊</button>
+            </div>
+          </div>
 
-    </div>
+          <div className="field">
+            <label>From</label>
 
-    <div className="preview-body">
+            <select
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+            >
+              {SENDER_OPTIONS.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
 
-      {body ? (
-        <div
-          dangerouslySetInnerHTML={{
-            __html: body
-          }}
-        />
-      ) : (
-        <div className="empty-preview">
+          <div className="field">
+            <label>To</label>
 
-          Your HTML preview will appear here.
+            <input
+              placeholder="john@example.com"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+            />
+          </div>
 
+          <div className="field">
+            <label>Subject</label>
+
+            <input
+              placeholder="Email subject..."
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+            />
+          </div>
+
+          <div className="field">
+            <label>Body (HTML Supported)</label>
+
+            <textarea
+              className="editor-textarea"
+              placeholder="<h1>Hello!</h1>"
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+            />
+          </div>
+
+          <div className="bottom-bar">
+            <span>{body.length} Characters</span>
+
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.95 }}
+              className="send"
+              onClick={sendEmail}
+            >
+              📤 Send Email
+            </motion.button>
+          </div>
+
+          <AnimatePresence>
+            {status && (
+              <motion.div
+                initial={{
+                  opacity: 0,
+                  scale: 0.8,
+                }}
+                animate={{
+                  opacity: 1,
+                  scale: 1,
+                }}
+                exit={{
+                  opacity: 0,
+                  scale: 0.8,
+                }}
+                className={`status-badge ${status}`}
+              >
+                {status}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      )}
 
-    </div>
+        {/* ================= RIGHT SIDE ================= */}
 
-  </div>
+        <div className="preview">
+          <div className="preview-header">
+            Live Preview
+          </div>
 
-</div>
-      </section>
-    </Dashboard>
+          <div className="preview-body">
+            {body ? (
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: body,
+                }}
+              />
+            ) : (
+              <div className="empty-preview">
+                Your HTML preview will appear here.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
+
+  {activeTab === "inbox" && (
+    <Inbox
+
+		API_BASE={API_BASE}
+
+		activeTab={activeTab}
+
+		setActiveTab={setActiveTab}
+
+		/>
+  )}
+</Dashboard>
   </div>
 )
 }

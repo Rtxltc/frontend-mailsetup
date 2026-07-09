@@ -23,8 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 node_modules/
-public/
 backend/
 .env
 __pycache__/
 test/
+# Optional npm cache directory
+.npm
+gnome-ext-hanabi/
+

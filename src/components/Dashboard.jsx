@@ -4,7 +4,8 @@ import StatsCards from "./StatsCards";
 export default function Dashboard({
     user,
     children,
-    onLogout
+    onLogout,
+    onOpenInbox
 }) {
 
     return (
@@ -14,6 +15,7 @@ export default function Dashboard({
             <Navbar
                 user={user}
                 onLogout={onLogout}
+                onOpenInbox={onOpenInbox}
             />
             <main className="dashboard">
 
