@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "server": "node server.js",
+    "server": "python -m uvicorn backend.test:app --reload --host 0.0.0.0 --port 8000",
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview"

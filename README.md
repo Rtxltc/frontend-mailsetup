@@ -29,11 +29,13 @@ npm install
 npm run dev
 ```
 
-3. In a separate terminal, start the small backend server:
+3. In a separate terminal, start the FastAPI backend server:
 
 ```bash
-node server.js
+npm run server
 ```
+
+The frontend uses Vite proxy rules for `/mail` and `/send-email` so requests are forwarded to the backend on `http://localhost:8000`.
 
 Frontend notes:
 - The demo login uses credentials `admin` / `password123`.

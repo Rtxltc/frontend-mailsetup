@@ -1,6 +1,13 @@
 import { normalizeInboxPayload } from '../utils/inboxNormalizer';
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? '';
+const normalizeApiBase = (value = '') => {
+  const base = String(value || '').trim();
+  if (!base) return '';
+  if (/^https?:\/\//i.test(base)) return base.replace(/\/+$/, '');
+  return `https://${base.replace(/\/+$/, '')}`;
+};
+
+const API_BASE = normalizeApiBase(import.meta.env.VITE_API_BASE);
 
 const buildUrl = (path) => `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`;
 
