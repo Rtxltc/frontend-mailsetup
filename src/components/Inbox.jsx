@@ -171,7 +171,7 @@ export default function Inbox({ activeTab, setActiveTab, inboxView }) {
         <div className={`mail-list-header ${isBellInbox ? 'featured' : ''}`}>
           <div className="title-block">
             <p className="section-label">{isBellInbox ? 'Bell-triggered view' : 'Mail'} </p>
-            <h3>{folderConfig[folder].label}</h3>
+            <h3>{folderConfig[folder].title}</h3>
           </div>
 
           <input
@@ -200,7 +200,7 @@ export default function Inbox({ activeTab, setActiveTab, inboxView }) {
         <div className="folder-switcher">
           {Object.entries(folderConfig).map(([key, config]) => (
             <button key={key} className={folder === key ? 'active' : ''} onClick={() => { setFolder(key); setSearch(''); }}>
-              {config.label}
+              {config.title}
             </button>
           ))}
         </div>

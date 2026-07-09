@@ -408,13 +408,10 @@ export default function App() {
 
   {activeTab === "inbox" && (
     <Inbox
-
 		API_BASE={API_BASE}
-
 		activeTab={activeTab}
-
 		setActiveTab={setActiveTab}
-
+		inboxView={inboxView}
 		/>
   )}
 </Dashboard>
