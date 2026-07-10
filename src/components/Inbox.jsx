@@ -18,10 +18,10 @@ import {
 } from '../api/mail';
 
 const folderConfig = {
-  inbox: { label: 'Inbox', fetcher: getInbox, emptyTitle: 'Your inbox is clear', emptyMessage: 'No messages are waiting for you right now.' },
-  sent: { label: 'Sent', fetcher: getSent, emptyTitle: 'No sent mail', emptyMessage: 'Messages you send will appear here.' },
-  starred: { label: 'Starred', fetcher: getStarred, emptyTitle: 'No starred messages', emptyMessage: 'Star important mail to keep it handy.' },
-  trash: { label: 'Trash', fetcher: getDeleted, emptyTitle: 'Trash is empty', emptyMessage: 'Deleted mail will show up here.' },
+  inbox: { title: 'Inbox', fetcher: getInbox, emptyTitle: 'Your inbox is clear', emptyMessage: 'No messages are waiting for you right now.' },
+  sent: { title: 'Sent', fetcher: getSent, emptyTitle: 'No sent mail', emptyMessage: 'Messages you send will appear here.' },
+  starred: { title: 'Starred', fetcher: getStarred, emptyTitle: 'No starred messages', emptyMessage: 'Star important mail to keep it handy.' },
+  trash: { title: 'Trash', fetcher: getDeleted, emptyTitle: 'Trash is empty', emptyMessage: 'Deleted mail will show up here.' },
 };
 
 export default function Inbox({ activeTab, setActiveTab, inboxView }) {
