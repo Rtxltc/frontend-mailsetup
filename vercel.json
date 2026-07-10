@@ -1,5 +1,16 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/mail/:path*",
+      "destination": "https://admin-mail.soulmatrix.in/mail/:path*"
+    },
+    {
+      "source": "/send-email",
+      "destination": "https://admin-mail.soulmatrix.in/send-email"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }
