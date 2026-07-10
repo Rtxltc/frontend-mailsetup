@@ -30,4 +30,4 @@ test/
 # Optional npm cache directory
 .npm
 gnome-ext-hanabi/
-
+venv/

@@ -6,7 +6,7 @@
 html,body,#root{height:100%;}
 body{margin:0;font-family:system-ui, sans-serif;background:var(--bg1);color:#e6eef8}
 .app{position:relative;min-height:100vh;overflow:hidden}
-.bg{position:absolute;inset:0;z-index:0;background:linear-gradient(120deg,var(--bg1),var(--bg2));transform:translateZ(0);}
+.bg{position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(120deg,var(--bg1),var(--bg2));transform:translateZ(0);}
 
 /* animated floating shapes */
 .bg::before, .bg::after{
@@ -618,6 +618,8 @@ transform:translateY(-2px);
 /* ---------- DASHBOARD ---------- */
 
 .dashboard{
+position:relative;
+z-index:1;
 
 width:min(1400px,95%);
 
