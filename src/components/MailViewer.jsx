@@ -67,11 +67,56 @@ export default function MailViewer({
 
         <hr />
 
-        {mail.html ? (
-          <div className="mail-body" dangerouslySetInnerHTML={{ __html: mail.html }} />
-        ) : (
-          <pre className="mail-plain-text">{mail.text || mail.raw || 'No message content available.'}</pre>
-        )}
+        {(() => {
+          const isEscapedHtml = (html) => {
+            if (!html) return false;
+            const lower = html.toLowerCase();
+            return lower.includes('&lt;!doctype html') || lower.includes('&lt;html');
+          };
+
+          const isPlainHtml = (text) => {
+            if (!text) return false;
+            const trimmed = text.trim().toLowerCase();
+            return trimmed.startsWith('<!doctype html') || trimmed.startsWith('<html');
+          };
+
+          if (isEscapedHtml(mail.html)) {
+            const doc = new DOMParser().parseFromString(mail.html, 'text/html');
+            const unescaped = doc.documentElement.textContent || doc.documentElement.innerText || '';
+            return (
+              <iframe
+                srcDoc={unescaped}
+                title="Email content"
+                className="mail-body-iframe"
+                style={{ width: '100%', border: 'none', minHeight: '600px', background: '#fff', borderRadius: '12px', marginTop: '16px' }}
+              />
+            );
+          }
+
+          if (isPlainHtml(mail.text)) {
+            return (
+              <iframe
+                srcDoc={mail.text}
+                title="Email content"
+                className="mail-body-iframe"
+                style={{ width: '100%', border: 'none', minHeight: '600px', background: '#fff', borderRadius: '12px', marginTop: '16px' }}
+              />
+            );
+          }
+
+          if (mail.html) {
+            return (
+              <iframe
+                srcDoc={mail.html}
+                title="Email content"
+                className="mail-body-iframe"
+                style={{ width: '100%', border: 'none', minHeight: '600px', background: '#fff', borderRadius: '12px', marginTop: '16px' }}
+              />
+            );
+          }
+
+          return <pre className="mail-plain-text">{mail.text || mail.raw || 'No message content available.'}</pre>;
+        })()}
       </motion.div>
     </AnimatePresence>
   );
