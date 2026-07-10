@@ -55,14 +55,20 @@ export default function App() {
 	const [from, setFrom] = useState(SENDER_OPTIONS[0])
 	const [status, setStatus] = useState('')
 
-	const normalizeApiBase = (value = '') => {
-		const base = String(value || '').trim()
-		if (!base) return ''
-		if (/^https?:\/\//i.test(base)) return base.replace(/\/+$/, '')
-		return `https://${base.replace(/\/+$/, '')}`
+	const getApiBase = () => {
+		if (typeof window === 'undefined') return ''
+		const hostname = window.location.hostname
+		if (hostname === 'ms.soulmatrix.in') {
+			return ''
+		}
+		const base = import.meta.env.VITE_API_BASE || 'admin-mail.soulmatrix.in'
+		const trimmed = String(base).trim()
+		if (!trimmed) return ''
+		if (/^https?:\/\//i.test(trimmed)) return trimmed.replace(/\/+$/, '')
+		return `https://${trimmed.replace(/\/+$/, '')}`
 	}
 
-	const API_BASE = normalizeApiBase(import.meta.env.VITE_API_BASE || '')
+	const API_BASE = getApiBase()
 
 	// preset users and their passwords (set real values in .env as VITE_PW_VICKY etc)
 	const PRESET_USERS = ['vicky', 'manmat', 'yash']

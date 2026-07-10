@@ -1,13 +1,19 @@
 import { normalizeInboxPayload } from '../utils/inboxNormalizer';
 
-const normalizeApiBase = (value = '') => {
-  const base = String(value || '').trim();
-  if (!base) return '';
-  if (/^https?:\/\//i.test(base)) return base.replace(/\/+$/, '');
-  return `https://${base.replace(/\/+$/, '')}`;
+const getApiBase = () => {
+  if (typeof window === 'undefined') return '';
+  const hostname = window.location.hostname;
+  if (hostname === 'ms.soulmatrix.in') {
+    return '';
+  }
+  const base = import.meta.env.VITE_API_BASE || 'admin-mail.soulmatrix.in';
+  const trimmed = String(base).trim();
+  if (!trimmed) return '';
+  if (/^https?:\/\//i.test(trimmed)) return trimmed.replace(/\/+$/, '');
+  return `https://${trimmed.replace(/\/+$/, '')}`;
 };
 
-const API_BASE = normalizeApiBase(import.meta.env.VITE_API_BASE || '');
+const API_BASE = getApiBase();
 
 const buildUrl = (path) => `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`;
 
