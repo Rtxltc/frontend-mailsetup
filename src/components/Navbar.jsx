@@ -66,11 +66,12 @@ export default function Navbar({
                 <button
                     className="logout"
                     onClick={onLogout}
+                    aria-label="Logout"
                 >
 
                     <LogOut size={18} />
 
-                    Logout
+                    <span className="logout-text">Logout</span>
 
                 </button>
 

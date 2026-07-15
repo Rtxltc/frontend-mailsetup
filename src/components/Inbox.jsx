@@ -60,9 +60,10 @@ export default function Inbox({ activeTab, setActiveTab, inboxView }) {
         return;
       }
 
+      const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900;
       if (selectedMail && data.some((item) => item.id === selectedMail.id)) {
         setSelectedMail(data.find((item) => item.id === selectedMail.id) || null);
-      } else if (data.length) {
+      } else if (data.length && !isMobile) {
         setSelectedMail(data[0]);
       } else {
         setSelectedMail(null);
@@ -164,7 +165,7 @@ export default function Inbox({ activeTab, setActiveTab, inboxView }) {
   };
 
   return (
-    <div className={`mail-app ${isBellInbox ? 'mail-app-featured' : ''}`}>
+    <div className={`mail-app ${isBellInbox ? 'mail-app-featured' : ''} ${selectedMail ? 'has-selected-mail' : ''}`}>
       <Sidebar activeTab={folder} setActiveTab={handleSidebarSelection} loadInbox={() => void loadFolder(folder, true)} />
 
       <div className="mail-list">
@@ -227,6 +228,7 @@ export default function Inbox({ activeTab, setActiveTab, inboxView }) {
         onDelete={handleDelete}
         onToggleStar={handleToggleStar}
         onRefresh={() => void loadFolder(folder, true)}
+        onBack={() => setSelectedMail(null)}
       />
 
       <ComposeDrawer

@@ -1,4 +1,4 @@
-import { Trash2, Star, Paperclip, RefreshCw } from 'lucide-react';
+import { Trash2, Star, Paperclip, RefreshCw, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function MailViewer({
@@ -7,6 +7,7 @@ export default function MailViewer({
   onDelete,
   onToggleStar,
   onRefresh,
+  onBack,
 }) {
   if (loading) {
     return (
@@ -38,6 +39,11 @@ export default function MailViewer({
         className="mail-viewer"
       >
         <div className="viewer-toolbar">
+          {onBack && (
+            <button className="icon-btn small back-to-list-btn" onClick={onBack} aria-label="Back to list">
+              <ArrowLeft size={16} />
+            </button>
+          )}
           <button className="icon-btn small" onClick={onRefresh} aria-label="Refresh messages">
             <RefreshCw size={16} />
           </button>

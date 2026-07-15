@@ -1596,3 +1596,198 @@ color:gold;
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
 }
+
+/* ==========================================================================
+   RESPONSIVE DESIGN OVERRIDES (MOBILE & TABLET SUPPORT)
+   ========================================================================== */
+
+/* Login screen card overflow fix */
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 28px 20px;
+    border-radius: 20px;
+  }
+  .login-wrapper {
+    padding: 16px;
+  }
+  .login-card h1 {
+    font-size: 1.6rem;
+  }
+  .logo-circle {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+  }
+}
+
+/* Sticky Navbar mobile collapse */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 16px 20px;
+  }
+  .nav-left .brand span {
+    font-size: 16px;
+  }
+  .search-box {
+    display: none !important;
+  }
+  .profile div {
+    display: none !important;
+  }
+  .logout {
+    padding: 12px !important;
+    border-radius: 50% !important;
+    width: 44px;
+    height: 44px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+  .logout-text {
+    display: none !important;
+  }
+}
+
+/* Stats Cards grid reduction */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+    margin-bottom: 20px !important;
+  }
+  .stat-card {
+    padding: 14px !important;
+    border-radius: 16px !important;
+    gap: 10px !important;
+  }
+  .stat-icon {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 12px !important;
+  }
+  .stat-icon svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .stat-card h2 {
+    font-size: 20px !important;
+    margin-top: 4px !important;
+  }
+  .stat-card small {
+    font-size: 11px !important;
+  }
+}
+
+/* Main Dashboard spacing & tabs stretch */
+@media (max-width: 768px) {
+  .dashboard {
+    width: 100% !important;
+    padding: 16px !important;
+    box-sizing: border-box !important;
+  }
+  .dashboard-tabs {
+    width: 100% !important;
+    display: flex !important;
+    box-sizing: border-box !important;
+  }
+  .dashboard-tabs button {
+    flex: 1 !important;
+    justify-content: center !important;
+  }
+}
+
+/* 3-Column to Slide-in Layout for Mail Client */
+@media (max-width: 900px) {
+  .mail-app {
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+  }
+  .sidebar {
+    display: none !important;
+  }
+  
+  /* Display one pane at a time based on selected email */
+  .mail-app:not(.has-selected-mail) .mail-viewer {
+    display: none !important;
+  }
+  .mail-app:not(.has-selected-mail) .mail-list {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 500px !important;
+  }
+
+  .mail-app.has-selected-mail .mail-list {
+    display: none !important;
+  }
+  .mail-app.has-selected-mail .mail-viewer {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 500px !important;
+  }
+  
+  .back-to-list-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (min-width: 901px) {
+  .back-to-list-btn {
+    display: none !important;
+  }
+}
+
+/* Compose View & Live Preview Stacking */
+.compose-layout {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 30px;
+}
+@media (max-width: 1100px) {
+  .compose-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .preview {
+    order: 0 !important; /* Stack below editor instead of pushing it down */
+  }
+}
+
+@media (max-width: 768px) {
+  .compose-area {
+    padding: 16px 0 !important;
+  }
+  .compose-layout {
+    gap: 16px !important;
+  }
+  .editor, .preview {
+    padding: 16px !important;
+    border-radius: 16px !important;
+  }
+  .preview-body {
+    padding: 16px !important;
+    min-height: 350px !important;
+  }
+  .empty-preview {
+    height: 300px !important;
+    font-size: 15px !important;
+  }
+  .compose-header h2 {
+    font-size: 22px !important;
+  }
+  .field input, .field textarea, .field select {
+    padding: 12px !important;
+    border-radius: 12px !important;
+  }
+  .editor-textarea {
+    min-height: 200px !important;
+  }
+}
